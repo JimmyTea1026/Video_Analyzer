@@ -1,0 +1,13 @@
+/bin
+/lib
+/Testset
+/video
+/plot
+/scrfd
+/images
+/test
+/FaceMaskDetection
+*.pyc
+*.jpg
+*.mp4
+*.dat
