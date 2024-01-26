@@ -1,12 +1,9 @@
 /bin
 /lib
-/Testset
-/video
-/plot
+/result
 /scrfd
-/images
 /test
-/FaceMaskDetection
+/mask_detector
 *.pyc
 *.jpg
 *.mp4

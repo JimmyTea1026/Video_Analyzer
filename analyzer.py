@@ -3,7 +3,7 @@ from utils.video_loader import Video_loader
 from utils.attribute_extractor import Attribute_extractor
 from utils.bangs_detector import Bangs_detector
 from FaceAngleRotation.rotation_cal import FaceeRotationAngleDetector
-from FaceMaskDetection.pytorch_infer import FaceMaskDetector
+from mask_detector.mask_detector import FaceMaskDetector
 from utils.scrfd import SCRFD
 import cv2
 import dlib
