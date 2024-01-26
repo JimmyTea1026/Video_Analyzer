@@ -18,6 +18,8 @@ class FaceeRotationAngleDetector:
         
         self.result_list = []
         self.image_list = []
+        self.data = []
+        self.reset()
         
     def reset(self):
         self.result_list.clear()
@@ -94,8 +96,9 @@ class FaceeRotationAngleDetector:
         result = [yaw, pitch, roll]
         self.result_list.append(result)
         
-        data = [rotation_vector, translation_vector, camera_matrix, dist_coeffs, face_points]
-        self.draw_image(img, data)
+        self.data = [rotation_vector, translation_vector, camera_matrix, dist_coeffs, face_points]
+        drawed_image = self.draw_image(img)
+        self.image_list.append(drawed_image)
         
     def vector_to_euler(self, rotation_vector, translation_vector):
         # 計算歐拉角
@@ -115,10 +118,14 @@ class FaceeRotationAngleDetector:
         
         return yaw, pitch, roll
     
-    def draw_image(self, img, data):
+    def draw_image(self, img, need_copy=True):
         if len(self.data) == 0:
-            return None
-        image = img.copy()
+            return img
+        image = img
+        if need_copy:
+            image = img.copy()
+        
+        data = self.data
         rotation_vector = data[0] 
         translation_vector = data[1]  
         camera_matrix = data[2] 
@@ -155,10 +162,13 @@ class FaceeRotationAngleDetector:
         for p in face_points:
             cv2.circle(image, (int(p[0]), int(p[1])), 3, (255,255,255), -1)
 
-        self.image_list.append(image)
+        return image
     
     def get_result_list(self):
         return self.result_list
 
     def get_image_list(self):
         return self.image_list
+    
+    def clear_data(self):
+        self.data.clear()

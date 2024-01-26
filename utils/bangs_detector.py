@@ -4,11 +4,14 @@ import os
 
 class Bangs_detector:
     def __init__(self) -> None:
+        self.result_list = []
+        self.image_list = []
+        self.data = []
         self.reset()
     
     def reset(self):
-        self.result_list = []
-        self.image_list = []
+        self.result_list.clear()
+        self.image_list.clear()
     
     def inference(self, img):
         face_image = img.copy()
@@ -45,16 +48,30 @@ class Bangs_detector:
         hair_pixels = cv2.countNonZero(hair_mask)
 
         # Horizontally concatenate the images
-        merged_image = self.merge_image(img, skin_result, hair_result)
+        self.data = [skin_result, hair_result]
+        merged_image = self.merge_image(img)
 
         self.image_list.append(merged_image)
         skin_proportion = round(skin_pixels / (skin_pixels + hair_pixels), 2)
         self.result_list.append(skin_proportion)
 
-    def merge_image(self, img, skin_result, hair_result):
-        space = np.zeros((img.shape[0], 20, 3), dtype=np.uint8)
-        merged_image = cv2.hconcat([img, space, skin_result, space, hair_result])
+    def merge_image(self, img, overlap=False):
+        if len(self.data) == 0:
+            return img
+        skin_result, hair_result = self.data
+        
+        if overlap:
+            merged_image = img.copy()
+            merged_image[0:skin_result.shape[0], 0:skin_result.shape[1]] = skin_result
+            merged_image[skin_result.shape[0]:skin_result.shape[0]+hair_result.shape[0], 0:hair_result.shape[1]] = hair_result
+        else:
+            space = np.zeros((img.shape[0], 20, 3), dtype=np.uint8)
+            merged_image = cv2.hconcat([img, space, skin_result, space, hair_result])
+    
         return merged_image
+    
+    def clear_data(self):
+        self.data.clear()
     
     def get_result_list(self):
         return self.result_list

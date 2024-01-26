@@ -6,30 +6,22 @@ class Attribute_extractor:
     def __init__(self) -> None:
         self.reset()
     
-    def load_frame(self, frame):
-        self.frame = frame
-        
     def reset(self):
         self.result_list = {'gray':[], 'hsv':[], 'hist':[]}
     
-    def get_attribute(self):
-        self.get_gray_brightness()
+    def inference(self, frame):
+        self.frame = frame
         self.get_hsv()
-        self.get_hist()
-    
-    def get_gray_brightness(self):
-        gray_frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
-        brightness = int(gray_frame.mean())
-        self.result_list['gray'].append(brightness)
+        self.get_gray_hist()
 
-    def get_hist(self):
+    def get_gray_hist(self):
         gray_frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
         hist = cv2.calcHist([gray_frame], [0], None, [256], [0, 250])
         brightness = np.mean(hist)
         self.result_list['hist'].append(brightness)
         # cv2.imwrite("plot/gray_frame.jpg", gray_frame)
-        # plt.hist(gray_frame.ravel(), 256, [0, 250])
-        # plt.savefig("plot/hist.jpg")
+        plt.hist(gray_frame.ravel(), 256, [0, 250])
+        plt.savefig("plot/hist2.jpg")
 
     def get_hsv(self):
         hsv_frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2HSV)
