@@ -4,19 +4,20 @@ import os
 
 class Bangs_detector:
     def __init__(self) -> None:
-        self.result_list = []
-        self.image_list = []
-        self.data = []
-        self.reset()
+        self.cur_mask = []
     
-    def reset(self):
-        self.result_list.clear()
-        self.image_list.clear()
-    
-    def inference(self, img):
-        face_image = img.copy()
-        hsv_image = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        ycrcb_image = cv2.cvtColor(img, cv2.COLOR_BGR2YCrCb)
+    def inference(self, img, rect):
+        '''
+        Input the cropped face image, return the proportion of skin and merged image
+        '''
+        self.skin_proportion = 0
+        self.cur_mask.clear()
+        
+        x1, y1, x2, y2 = rect
+        face_image = img[y1:y2, x1:x2]
+        
+        hsv_image = cv2.cvtColor(face_image, cv2.COLOR_BGR2HSV)
+        ycrcb_image = cv2.cvtColor(face_image, cv2.COLOR_BGR2YCrCb)
         # 定義膚色的YCbCr範圍
         lower_skin = np.array([0, 140, 77], dtype=np.uint8)
         upper_skin = np.array([255, 173, 118], dtype=np.uint8)  
@@ -40,44 +41,28 @@ class Bangs_detector:
         gray_sm = cv2.cvtColor(hair_result, cv2.COLOR_BGR2GRAY)
         black_mask = cv2.threshold(gray_sm, 1, 255, cv2.THRESH_BINARY_INV)[1]
         hair_result[black_mask == 255] = [255, 255, 255]
-
-        # 計算膚色區域的像素數量
-        skin_pixels = cv2.countNonZero(skin_mask)
-
-        # 計算頭髮區域的像素數量
-        hair_pixels = cv2.countNonZero(hair_mask)
-
-        # Horizontally concatenate the images
-        self.data = [skin_result, hair_result]
-        merged_image = self.merge_image(img)
-
-        self.image_list.append(merged_image)
-        skin_proportion = round(skin_pixels / (skin_pixels + hair_pixels), 2)
-        self.result_list.append(skin_proportion)
-
-    def merge_image(self, img, overlap=False):
-        if len(self.data) == 0:
-            return img
-        skin_result, hair_result = self.data
+        self.cur_mask = [skin_result, hair_result]
         
-        if overlap:
-            merged_image = img.copy()
-            merged_image[0:skin_result.shape[0], 0:skin_result.shape[1]] = skin_result
-            merged_image[skin_result.shape[0]:skin_result.shape[0]+hair_result.shape[0], 0:hair_result.shape[1]] = hair_result
-        else:
-            space = np.zeros((img.shape[0], 20, 3), dtype=np.uint8)
-            merged_image = cv2.hconcat([img, space, skin_result, space, hair_result])
-    
+        # Horizontally concatenate the images
+        merged_image = self.merge_horizontally(face_image, skin_result, hair_result)
+
+        skin_pixels = cv2.countNonZero(skin_mask) # 計算膚色區域的像素數量
+        hair_pixels = cv2.countNonZero(hair_mask) # 計算頭髮區域的像素數量
+        self.skin_proportion = round(skin_pixels / (skin_pixels + hair_pixels), 2)
+   
+        return self.skin_proportion, merged_image
+
+    def merge_horizontally(self, img, skin_result, hair_result):
+        space = np.zeros((img.shape[0], 20, 3), dtype=np.uint8)
+        merged_image = cv2.hconcat([img, space, skin_result, space, hair_result])
         return merged_image
     
-    def clear_data(self):
-        self.data.clear()
-    
-    def get_result_list(self):
-        return self.result_list
-    
-    def get_image_list(self):
-        return self.image_list
+    def draw_image(self, img):
+        if len(self.cur_mask) == 0:
+            return img
+        skin_result, hair_result = self.cur_mask
+        cv2.putText(img, f"skin_proportion : {self.skin_proportion}", (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+        img[40:40+skin_result.shape[0], 0:skin_result.shape[1]] = skin_result
+        img[40+skin_result.shape[0]:40+skin_result.shape[0]+hair_result.shape[0], 0:hair_result.shape[1]] = hair_result
         
-        
-        
+        return img

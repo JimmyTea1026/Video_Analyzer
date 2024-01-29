@@ -311,8 +311,7 @@ class SCRFD:
             det = det[bindex, :]
             if kpss is not None:
                 kpss = kpss[bindex, :]
-        # return det, kpss, check
-        return check
+        return det, kpss
 
     def nms(self, dets):
         thresh = self.nms_thresh

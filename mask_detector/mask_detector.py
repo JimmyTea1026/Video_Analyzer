@@ -31,16 +31,9 @@ id2class = {0: 'Mask', 1: 'NoMask'}
 
 class FaceMaskDetector:
     def __init__(self) -> None:
-        self.result_list = []
-        self.image_list = []
-        self.data = []
-        self.reset()
+        self.cur_data = []
     
-    def reset(self):
-        self.result_list.clear()
-        self.image_list.clear()
-    
-    def inference(self, img,
+    def inference(self, img, rect,
                 conf_thresh=0.5,
                 iou_thresh=0.4,
                 target_shape=(360, 360),
@@ -55,15 +48,14 @@ class FaceMaskDetector:
         :param show_result: whether to display the image.
         :return:
         '''
+        self.cur_data.clear()
         image = img.copy()
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         height, width, _ = image.shape
         image_resized = cv2.resize(image, target_shape)
         image_np = image_resized / 255.0  # 归一化到0~1
         image_exp = np.expand_dims(image_np, axis=0)
-
         image_transposed = image_exp.transpose((0, 3, 1, 2))
-
         y_bboxes_output, y_cls_output = pytorch_inference(model, image_transposed)
         # remove the batch dimension, for batch is always 1 for inference.
         y_bboxes = decode_bbox(anchors_exp, y_bboxes_output)[0]
@@ -78,45 +70,33 @@ class FaceMaskDetector:
                                                     conf_thresh=conf_thresh,
                                                     iou_thresh=iou_thresh,
                                                     )
-        for idx in keep_idxs:
-            conf = float(bbox_max_scores[idx])
-            class_id = bbox_max_score_classes[idx]
-            bbox = y_bboxes[idx]
-            # clip the coordinate, avoid the value exceed the image boundary.
-            xmin = max(0, int(bbox[0] * width))
-            ymin = max(0, int(bbox[1] * height))
-            xmax = min(int(bbox[2] * width), width)
-            ymax = min(int(bbox[3] * height), height)
-            self.data = [class_id, conf, xmin, ymin, xmax, ymax]
-            drawed_image = self.draw_image(img)
-            self.result_list.append(class_id==0)
-            self.image_list.append(drawed_image)
-            break
-            
+        if len(keep_idxs) == 0:
+            return None, img
+        idx = keep_idxs[0]
+        conf = float(bbox_max_scores[idx])
+        class_id = bbox_max_score_classes[idx]
+        bbox = y_bboxes[idx]
+        # clip the coordinate, avoid the value exceed the image boundary.
+        xmin = max(0, int(bbox[0] * width))
+        ymin = max(0, int(bbox[1] * height))
+        xmax = min(int(bbox[2] * width), width)
+        ymax = min(int(bbox[3] * height), height)
+        self.cur_data = [class_id, conf, xmin, ymin, xmax, ymax]
+        drawed_image = self.draw_image(img.copy())
         
-    def draw_image(self, img, need_copy=True):
-        if len(self.data) == 0:
+        return class_id == 0, drawed_image
+        
+    def draw_image(self, img):
+        if len(self.cur_data) == 0:
             return img
-        image = img
-        data = self.data
-        if need_copy:
-            image = img.copy()
-        class_id, conf, xmin, ymin, xmax, ymax = data
+
+        class_id, conf, xmin, ymin, xmax, ymax = self.cur_data
         if class_id == 0:
             color = (0, 255, 0)
         else:
             color = (255, 0, 0)
-        cv2.rectangle(image, (xmin, ymin), (xmax, ymax), color, 2)
-        cv2.putText(image, "%s: %.2f" % (id2class[class_id], conf), (xmin + 2, ymin - 2),
+        cv2.rectangle(img, (xmin, ymin), (xmax, ymax), color, 2)
+        cv2.putText(img, "%s: %.2f" % (id2class[class_id], conf), (xmin + 2, ymin - 2),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, color)
 
-        return image
-    
-    def get_result_list(self):
-        return self.result_list
-
-    def get_image_list(self):
-        return self.image_list
-    
-    def clear_data(self):
-        self.data.clear()
+        return img
