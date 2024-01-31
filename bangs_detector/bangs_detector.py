@@ -20,7 +20,7 @@ class Bangs_detector:
         ycrcb_image = cv2.cvtColor(face_image, cv2.COLOR_BGR2YCrCb)
         # 定義膚色的YCbCr範圍
         lower_skin = np.array([0, 140, 77], dtype=np.uint8)
-        upper_skin = np.array([255, 173, 118], dtype=np.uint8)  
+        upper_skin = np.array([255, 173, 123], dtype=np.uint8)  
         # YCbCr, Cr 為紅色偏移量，只要調整這個就好
 
         # 定義頭髮的HSV範圍
@@ -48,9 +48,11 @@ class Bangs_detector:
 
         skin_pixels = cv2.countNonZero(skin_mask) # 計算膚色區域的像素數量
         hair_pixels = cv2.countNonZero(hair_mask) # 計算頭髮區域的像素數量
-        self.skin_proportion = round(skin_pixels / (skin_pixels + hair_pixels), 2)
+        all_pixels = (x2-x1) * (y2-y1)
+        # self.skin_proportion = round(skin_pixels / (skin_pixels + hair_pixels), 2)
+        hair_proportion = round(hair_pixels / all_pixels, 2)
    
-        return self.skin_proportion, merged_image
+        return hair_proportion, merged_image
 
     def merge_horizontally(self, img, skin_result, hair_result):
         space = np.zeros((img.shape[0], 20, 3), dtype=np.uint8)
@@ -60,9 +62,15 @@ class Bangs_detector:
     def draw_image(self, img):
         if len(self.cur_mask) == 0:
             return img
+        image = img.copy()
         skin_result, hair_result = self.cur_mask
-        cv2.putText(img, f"skin_proportion : {self.skin_proportion}", (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-        img[40:40+skin_result.shape[0], 0:skin_result.shape[1]] = skin_result
-        img[40+skin_result.shape[0]:40+skin_result.shape[0]+hair_result.shape[0], 0:hair_result.shape[1]] = hair_result
+        cv2.putText(image, f"skin_proportion : {self.skin_proportion}", (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+        skin_y = skin_result.shape[0]
+        skin_x = skin_result.shape[1]
+        hair_y = hair_result.shape[0]
+        hair_x = hair_result.shape[1]
+        bia = 40
+        image[bia:bia+skin_y, 0:skin_x] = skin_result
+        image[bia:bia+hair_y, skin_x:skin_x+hair_x] = hair_result
         
-        return img
+        return image

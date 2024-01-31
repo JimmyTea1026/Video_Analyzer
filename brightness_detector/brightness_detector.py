@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
-class Attribute_extractor:
+class Brightness_detector:
     def __init__(self) -> None:
         self.brightness = 0
         self.pos = (0, 0)
@@ -25,9 +25,10 @@ class Attribute_extractor:
         
         return self.brightness, image
 
-    def draw_image(self, frame):
-        cv2.putText(frame, f"self.brightness : {self.brightness}", self.pos, cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-        return frame
+    def draw_image(self, img):
+        image = img.copy()
+        cv2.putText(image, f"self.brightness : {self.brightness}", self.pos, cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+        return image
     
     def get_gray_hist(self):
         gray_frame = cv2.cvtColor(self.face, cv2.COLOR_BGR2GRAY)

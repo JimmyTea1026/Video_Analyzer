@@ -1,7 +1,7 @@
 #!/bin/bash
 
-CONTAINER_NAME="video_analyzer"
-IMAGE_NAME="c121nn8u2004"
+CONTAINER_NAME="analyzer"
+IMAGE_NAME="u118nn8u2204"
 
 # 檢查容器是否存在
 if docker inspect $CONTAINER_NAME > /dev/null 2>&1; then

@@ -43,8 +43,8 @@ class FaceeRotationAngleDetector:
                                                               , dist_coeffs, flags=cv2.SOLVEPNP_ITERATIVE)
         if not success:
             return None, img
-        self.cur_data = [rotation_vector, translation_vector, camera_matrix, dist_coeffs, face_points]
         yaw, pitch, roll = self.vector_to_euler(rotation_vector, translation_vector)
+        self.cur_data = [rotation_vector, translation_vector, camera_matrix, dist_coeffs, face_points, yaw, pitch, roll]
         drawed_image = self.draw_image(img.copy())
 
         return [yaw, pitch, roll], drawed_image
@@ -101,7 +101,7 @@ class FaceeRotationAngleDetector:
         if len(self.cur_data) == 0:
             return img
 
-        rotation_vector, translation_vector, camera_matrix, dist_coeffs, face_points = self.cur_data
+        rotation_vector, translation_vector, camera_matrix, dist_coeffs, face_points, yaw, pitch, roll = self.cur_data
 
         # 投射一個3D的點 (100.0, 0, 0)到2D圖像的座標上
         (x_end_point2D, jacobian) = cv2.projectPoints(np.array([(100.0, 0.0, 0.0)]), rotation_vector
@@ -132,5 +132,10 @@ class FaceeRotationAngleDetector:
         # 把6個基準點標註出來
         for p in face_points:
             cv2.circle(img, (int(p[0]), int(p[1])), 3, (255,255,255), -1)
+        
+        yaw = np.round(yaw, 2)
+        pitch = np.round(pitch, 2)
+        roll = np.round(roll, 2)
+        cv2.putText(img, f"Yaw: {yaw} / Pitch: {pitch} / Roll: {roll}", (500, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
         return img

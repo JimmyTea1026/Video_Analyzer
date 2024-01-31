@@ -71,7 +71,8 @@ class FaceMaskDetector:
                                                     iou_thresh=iou_thresh,
                                                     )
         if len(keep_idxs) == 0:
-            return None, img
+            return False, img
+        
         idx = keep_idxs[0]
         conf = float(bbox_max_scores[idx])
         class_id = bbox_max_score_classes[idx]

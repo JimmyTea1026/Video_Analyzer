@@ -12,7 +12,7 @@ class FaceDetector:
     
     def prepare(self):
         if self.type == 'scrfd':
-            self.detector = SCRFD("/utlis/model/det_500m.onnx")
+            self.detector = SCRFD("./face_detector/model/det_500m.onnx")
             self.detector.prepare(0)
         elif self.type == 'dlib':
             self.detector = dlib.get_frontal_face_detector()
@@ -22,8 +22,12 @@ class FaceDetector:
     
     def detect(self, frame):
         if self.type == 'scrfd':
-            bboxes, kpss = self.detector.autodetect(frame, max_num=1)
-            return bboxes
+            bboxes, _ = self.detector.autodetect(frame, max_num=1)
+            if len(bboxes) == 0:
+                return None
+            bbox = bboxes[0]
+            bbox = [int(x) for x in bbox][:4]   # 取前面四個數值x1 y1 x2 y2
+            return bbox
         elif self.type == 'dlib':
             rects = self.detector(frame, 1)
             if len(rects) == 0:

@@ -1,15 +1,20 @@
 import cv2
 
 class Video_loader:
-    def __init__(self, angle=0) -> None:
+    def __init__(self, path, angle=0) -> None:
         self.angle = angle
-            
-    def load_video(self, path):
         self.cap = cv2.VideoCapture(path)
         if not self.cap.isOpened():
             print("Error opening video stream or file")
-            return False
-        return True
+    
+    def get_frame_num(self):
+        return int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    def get_video_fps(self):
+        return int(self.cap.get(cv2.CAP_PROP_FPS))
+
+    def get_video_length(self):
+        return round(self.get_frame_num() / self.get_video_fps(), 1)
     
     def get_frame(self):
         ret, frame = self.cap.read()
