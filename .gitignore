@@ -8,3 +8,6 @@
 *.jpg
 *.mp4
 *.dat
+/model
+/moduls
+insight_rcgFaces_photos.py
