@@ -1,4 +1,4 @@
-from face_detector.scrfd import SCRFD
+from .scrfd import SCRFD
 import os
 import dlib
 import cv2
@@ -12,7 +12,8 @@ class FaceDetector:
     
     def prepare(self):
         if self.type == 'scrfd':
-            self.detector = SCRFD("./face_detector/model/det_500m.onnx")
+            cur_path = os.path.dirname(os.path.abspath(__file__))
+            self.detector = SCRFD(f"{cur_path}/model/det_500m.onnx")
             self.detector.prepare(0)
         elif self.type == 'dlib':
             self.detector = dlib.get_frontal_face_detector()

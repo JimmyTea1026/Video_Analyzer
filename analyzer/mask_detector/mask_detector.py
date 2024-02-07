@@ -33,7 +33,7 @@ class FaceMaskDetector:
     def __init__(self) -> None:
         self.cur_data = []
     
-    def inference(self, img, rect,
+    def inference(self, img, rect=None,
                 conf_thresh=0.5,
                 iou_thresh=0.4,
                 target_shape=(360, 360),

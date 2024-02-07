@@ -1,7 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor
 import os
 import pickle
-from utils.video_loader import Video_loader
+from .utils.video_loader import Video_loader
 from .brightness_detector.brightness_detector import Brightness_detector
 from .bangs_detector.bangs_detector import Bangs_detector
 from .angle_detector.angle_detector import FaceeRotationAngleDetector
@@ -50,6 +50,10 @@ class Analyzer:
         rotate_result = result_dict['rotate']
         brightness_result = result_dict['brightness']
         return mask_result, bangs_result, rotate_result, brightness_result
+    
+    def inference_mask(self, frame):
+        mask_result, _ = self.detectors['mask'].inference(frame)
+        return mask_result  #return true or false
 '''
     def get_video_attribute(self, video_path):
         # for test
