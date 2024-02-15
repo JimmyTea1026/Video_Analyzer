@@ -8,6 +8,9 @@
 *.jpg
 *.mp4
 *.dat
+*.pkl
+*.xlsx
 /model
 /moduls
+/mask_test
 insight_rcgFaces_photos.py
