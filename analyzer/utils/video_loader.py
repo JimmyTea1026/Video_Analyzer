@@ -26,7 +26,6 @@ class Video_loader:
         if self.angle != 0:
             rotation_matrix = cv2.getRotationMatrix2D((width/2, height/2), self.angle, 1)
             frame = cv2.warpAffine(frame, rotation_matrix, (int(width), int(height)))
-        # cv2.imwrite('test.jpg', rotated_frame)
         return frame
     
     def release(self):
