@@ -25,6 +25,16 @@ class Brightness_detector:
         
         return self.brightness, image
 
+    def get_range(self, masked_frame):
+        # Calculate the pixel value distribution, mean, and standard deviation of the image, but exclude the white part
+        gray_frame = cv2.cvtColor(masked_frame, cv2.COLOR_BGR2GRAY)
+        face_indices = np.where(gray_frame != 255)
+        face_pixels = gray_frame[face_indices]
+        mean_value = np.mean(face_pixels, axis=-1)
+        std_value = np.std(face_pixels, axis=-1)
+        
+        return [mean_value, std_value]
+
     def draw_image(self, img):
         image = img.copy()
         cv2.putText(image, f"self.brightness : {self.brightness}", self.pos, cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
